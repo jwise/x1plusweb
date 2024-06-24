@@ -1,5 +1,6 @@
-import { AppShell, Burger, Group } from '@mantine/core';
+import { AppShell, NavLink, Burger, Group } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { IconScreenShare } from '@tabler/icons-react';
 
 function App() {
   const [opened, { toggle }] = useDisclosure();
@@ -17,8 +18,13 @@ function App() {
           X1Plus
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar p="md">
-        Navbar
+      <AppShell.Navbar>
+        <NavLink
+          href="#required-for-focus"
+          label="VNC"
+          leftSection={<IconScreenShare size="1rem" stroke={1.5} />}
+          active
+        />
       </AppShell.Navbar>
       <AppShell.Main>
         Main
