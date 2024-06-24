@@ -1,6 +1,7 @@
 import { AppShell, NavLink, Burger, Group } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconScreenShare } from '@tabler/icons-react';
+import { VncScreen } from 'react-vnc';
 
 function App() {
   const [opened, { toggle }] = useDisclosure();
@@ -27,7 +28,7 @@ function App() {
         />
       </AppShell.Navbar>
       <AppShell.Main>
-        Main
+        <VncScreen url="ws://10.1.10.50:5900" scaleViewport style={{ width: '75vw', height: '75vh', }} />
       </AppShell.Main>
       <AppShell.Footer p="md">
         Not connected to printer
