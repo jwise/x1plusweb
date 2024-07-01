@@ -1,9 +1,10 @@
 import { AppShell, NavLink, Burger, Button, TextInput, Group, Modal, Stack, PasswordInput } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconScreenShare, IconLogout } from '@tabler/icons-react';
-import { VncScreen } from 'react-vnc';
 import { useState, useEffect } from 'react';
+
 import LoginModal from './LoginModal';
+import VncTab from './VncTab';
 
 import printerConnection from './printer';
 
@@ -36,6 +37,11 @@ function App() {
     	
   }, [/* url */]);
   
+  var tabs: [Tab] = [
+    VncTab
+  ];
+  var [curTab, setCurTab] = useState(tabs[0].title);
+  
   return <>
     <LoginModal />
     <AppShell
@@ -51,12 +57,17 @@ function App() {
         </Group>
       </AppShell.Header>
       <AppShell.Navbar>
-        <NavLink
-          href="#"
-          label="VNC"
-          leftSection={<IconScreenShare size="1rem" stroke={1.5} />}
-          active
-        />
+        { tabs.map(tab =>
+            <NavLink
+              key={tab.title}
+              href="#"
+              label={tab.title}
+              leftSection={<tab.icon size="1rem" stroke={1.5} />}
+              active={tab.title == curTab}
+              onClick={() => setCurTab(tab.title)}
+            />
+          )
+        }
         <NavLink
           href="#"
           label="Disconnect"
@@ -65,7 +76,7 @@ function App() {
         />
       </AppShell.Navbar>
       <AppShell.Main>
-        { isConnected && <VncScreen url={`ws://${printerConnection.host}:5900`} scaleViewport style={{ width: '75vw', height: '75vh', }} /> }
+        { tabs.map(tab => curTab == tab.title && <tab.body key={tab.title} />) }
       </AppShell.Main>
       <AppShell.Footer p="md">
         {isConnected ? "Connected" :
