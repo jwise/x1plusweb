@@ -7,18 +7,23 @@ import printerConnection from './printer';
 
 function body() {
   const [isConnected, setIsConnected] = useState(printerConnection.connected);
-  const [settings, updSettings] = useState(null);
+  const [settings, setSettings] = useState(null);
 
-  function doUpdate() {
-    printerConnection.rpc('dbus.call', { object: '/x1plus/settings', bus_name: 'x1plus.x1plusd', interface: 'x1plus.settings', method: 'GetSettings', params: null }).
-      then(val => updSettings(val));
+  function requestSettings() {
+    printerConnection.rpc('dbus.call', {
+      object: '/x1plus/settings',
+      bus_name: 'x1plus.x1plusd',
+      interface: 'x1plus.settings',
+      method: 'GetSettings',
+      params: null
+    }).then(val => setSettings(val));
   }
 
   useEffect(() => {
     function onConnectedChanged(ev: any) {
     	setIsConnected(printerConnection.connected);
     	if (printerConnection.connected) {
-    	  doUpdate();
+    	  requestSettings();
     	}
     }
     printerConnection.addEventListener('connected', onConnectedChanged);
@@ -27,10 +32,10 @@ function body() {
         printerConnection.removeEventListener('connected', onConnectedChanged);
     	printerConnection.removeEventListener('disconnected', onConnectedChanged);
     };
-  }, [/* url */]);
+  }, []);
   
   if (isConnected && !settings) 
-    doUpdate();
+    requestSettings();
 
   return settings && <Table style={{ width: "50vw", }}>
     <Table.Thead>
@@ -40,7 +45,15 @@ function body() {
       </Table.Tr>
     </Table.Thead>
     <Table.Tbody>
-      {Object.entries(settings).map(([k, v], i) => v !== null && <Table.Tr key={i}><Table.Td>{k}</Table.Td><Table.Td>{JSON.stringify(v)}</Table.Td></Table.Tr>)}
+      {Object.entries(settings).map(
+        ([k, v], i) =>
+          v !== null &&
+            <Table.Tr key={i}>
+              <Table.Td>{k}</Table.Td>
+              <Table.Td>{JSON.stringify(v)}</Table.Td>
+            </Table.Tr>
+        )
+      }
     </Table.Tbody>
   </Table>;
 }
