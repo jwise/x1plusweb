@@ -1,33 +1,54 @@
-import { AppShell, NavLink, Burger, Group } from '@mantine/core';
+import { AppShell, NavLink, Burger, Button, TextInput, Group, Modal, Stack, PasswordInput } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconScreenShare } from '@tabler/icons-react';
+import { IconScreenShare, IconLogout } from '@tabler/icons-react';
 import { VncScreen } from 'react-vnc';
+import { useState, useEffect } from 'react';
 
-import WebSocketAsPromised from 'websocket-as-promised';
-
-async function connectToPrinter() {
-  const wsp = new WebSocketAsPromised(`ws://${location.host}/ws`, {
-    packMessage: data => JSON.stringify(data),
-    unpackMessage: data => JSON.parse(data),
-    attachRequestId: (data, requestId) => Object.assign({id: requestId}, data),
-    extractRequestId: data => data && data.id,
-  });
-  console.log("... connecting to printer websocket ...");
-  await wsp.open();
-  console.log("... connected ...");
-  const resp = await wsp.waitUnpackedMessage(data => data.method == 'hello' );
-  console.log(resp);
-  const resp2 = await wsp.sendRequest({"method": "auth", "params": {"password": "lol"}});
-  console.log(resp2);
-}
-
-connectToPrinter();
+import printerConnection from './printer';
 
 function App() {
   // const [conn, updConn] = useState('conn');
   const [opened, { toggle }] = useDisclosure();
+  const [isConnected, setIsConnected] = useState(printerConnection.connected);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectionProgress, setConnectionProgress] = useState(null);
   
-  return (
+  const [host, setHost] = useState('');
+  const [password, setPassword] = useState('');
+  
+  useEffect(() => {
+    function onConnectedChanged(ev: any) {
+    	setIsConnected(printerConnection.connected);
+    	setIsConnecting(false);
+    	setConnectionProgress(null);
+    }
+    function onConnectingProgress(ev: any) {
+        setIsConnected(false);
+        setIsConnecting(true);
+        setConnectionProgress(ev.progress);
+    }
+    printerConnection.addEventListener('connected', onConnectedChanged);
+    printerConnection.addEventListener('disconnected', onConnectedChanged);
+    printerConnection.addEventListener('connectingProgress', onConnectingProgress);
+    return () => {
+        printerConnection.removeEventListener('connected', onConnectedChanged);
+    	printerConnection.removeEventListener('disconnected', onConnectedChanged);
+        printerConnection.removeEventListener('connectingProgress', onConnectingProgress);
+    };
+    	
+  }, [/* url */]);
+  
+  return <>
+    <Modal opened={!isConnected} centered title="Connect to X1Plus" withCloseButton={false} onClose={() => null}>
+      {/* XXX: use mantine-form here to persist this */}
+      {/* XXX: handle connection error here */}
+      {/* XXX: provide connecting feedback in this modal, not just down below */}
+      <Stack>
+        <TextInput label="Printer IP address" placeholder={location.host} value={host} onChange={ev => setHost(ev.currentTarget.value)} />
+        <PasswordInput label="Password" value={password} onChange={ev => setPassword(ev.currentTarget.value)} />
+        <Button onClick={() => {printerConnection.connect(host == '' ? location.host : host, password); setIsConnecting(true)}} enabled={!isConnecting}>Connect</Button>
+      </Stack>
+    </Modal>
     <AppShell
       header={{ height: 60 }}
       footer={{ height: 60 }}
@@ -42,20 +63,30 @@ function App() {
       </AppShell.Header>
       <AppShell.Navbar>
         <NavLink
-          href="#required-for-focus"
+          href="#"
           label="VNC"
           leftSection={<IconScreenShare size="1rem" stroke={1.5} />}
           active
         />
+        <NavLink
+          href="#"
+          label="Disconnect"
+          leftSection={<IconLogout size="1rem" stroke={1.5} />}
+          onClick={() => {printerConnection.disconnect(); return false;}}
+        />
       </AppShell.Navbar>
       <AppShell.Main>
-        <VncScreen url={`ws://${location.hostname}:5900`} scaleViewport style={{ width: '75vw', height: '75vh', }} />
+        { isConnected && <VncScreen url={`ws://${location.hostname}:5900`} scaleViewport style={{ width: '75vw', height: '75vh', }} /> }
       </AppShell.Main>
       <AppShell.Footer p="md">
-        Not connected to printer
+        {isConnected ? "Connected" :
+         isConnecting && connectionProgress ? `Connecting: ${connectionProgress}...` :
+         isConnecting ? "Connecting..." :
+         "Not connected to printer"
+        }
       </AppShell.Footer>
     </AppShell>
-  );
+  </>;
 }
 
 export default App;
