@@ -3,6 +3,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { IconScreenShare, IconLogout } from '@tabler/icons-react';
 import { VncScreen } from 'react-vnc';
 import { useState, useEffect } from 'react';
+import LoginModal from './LoginModal';
 
 import printerConnection from './printer';
 
@@ -12,9 +13,6 @@ function App() {
   const [isConnected, setIsConnected] = useState(printerConnection.connected);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionProgress, setConnectionProgress] = useState(null);
-  
-  const [host, setHost] = useState('');
-  const [password, setPassword] = useState('');
   
   useEffect(() => {
     function onConnectedChanged(ev: any) {
@@ -39,16 +37,7 @@ function App() {
   }, [/* url */]);
   
   return <>
-    <Modal opened={!isConnected} centered title="Connect to X1Plus" withCloseButton={false} onClose={() => null}>
-      {/* XXX: use mantine-form here to persist this */}
-      {/* XXX: handle connection error here */}
-      {/* XXX: provide connecting feedback in this modal, not just down below */}
-      <Stack>
-        <TextInput label="Printer IP address" placeholder={location.host} value={host} onChange={ev => setHost(ev.currentTarget.value)} />
-        <PasswordInput label="Password" value={password} onChange={ev => setPassword(ev.currentTarget.value)} />
-        <Button onClick={() => {printerConnection.connect(host == '' ? location.host : host, password); setIsConnecting(true)}} enabled={!isConnecting}>Connect</Button>
-      </Stack>
-    </Modal>
+    <LoginModal />
     <AppShell
       header={{ height: 60 }}
       footer={{ height: 60 }}
@@ -76,7 +65,7 @@ function App() {
         />
       </AppShell.Navbar>
       <AppShell.Main>
-        { isConnected && <VncScreen url={`ws://${location.hostname}:5900`} scaleViewport style={{ width: '75vw', height: '75vh', }} /> }
+        { isConnected && <VncScreen url={`ws://${printerConnection.host}:5900`} scaleViewport style={{ width: '75vw', height: '75vh', }} /> }
       </AppShell.Main>
       <AppShell.Footer p="md">
         {isConnected ? "Connected" :

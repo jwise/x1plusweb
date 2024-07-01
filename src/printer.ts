@@ -45,6 +45,7 @@ class PrinterConnection extends EventTarget {
             return;
         }
         this.connected = true;
+        this.host = ip;
         console.log('PrinterConnection: connected');
         this._event('connected', {});
     }
