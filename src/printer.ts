@@ -6,6 +6,14 @@ class PrinterConnection extends EventTarget {
         Object.assign(event, params);
         this.dispatchEvent(event);
     }
+    
+    async rpc(method, params) {
+        const resp = await this.wsp.sendRequest({"jsonrpc": "2.0", "method": method, "params": params});
+        if (resp.error) {
+            throw resp.error;
+        }
+        return resp.result;
+    }
 
     async connect(ip, password) {
         if (this.connected) {
@@ -36,10 +44,11 @@ class PrinterConnection extends EventTarget {
         
         console.log("PrinterConnection: authenticating");
         this._event('connectingProgress', { 'progress': 'Authenticating' });
-        const authResp = await this.wsp.sendRequest({"method": "auth", "params": {"password": password}});
-        if (authResp.error) {
-            console.log(`PrinterConnection: authentication failed: ${authResp.error}`);
-            this._event('connectionFailed', { 'error': authResp.error });
+        try {
+            await this.rpc("auth", {"password": password});
+        } catch (e) {
+            console.log(`PrinterConnection: authentication failed: ${e}`);
+            this._event('connectionFailed', { 'error': e });
             await this.wsp.close();
             this.wsp = null;
             return;

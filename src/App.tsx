@@ -4,6 +4,7 @@ import { IconScreenShare, IconLogout } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 
 import LoginModal from './LoginModal';
+import SettingsTab from './SettingsTab';
 import VncTab from './VncTab';
 
 import printerConnection from './printer';
@@ -38,6 +39,7 @@ function App() {
   }, [/* url */]);
   
   var tabs: [Tab] = [
+    SettingsTab,
     VncTab
   ];
   var [curTab, setCurTab] = useState(tabs[0].title);
