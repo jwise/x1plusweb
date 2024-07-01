@@ -1,21 +1,24 @@
 import WebSocketAsPromised from 'websocket-as-promised';
 
 class PrinterConnection extends EventTarget {
-    _event(name, params) {
+    connected: boolean = false;
+    wsp: WebSocketAsPromised | undefined;
+    host: string | undefined;
+    _event(name: string, params: any) {
         const event = new Event(name);
         Object.assign(event, params);
         this.dispatchEvent(event);
     }
     
-    async rpc(method, params) {
-        const resp = await this.wsp.sendRequest({"jsonrpc": "2.0", "method": method, "params": params});
+    async rpc(method: string, params: Object) {
+        const resp = await this.wsp!.sendRequest({"jsonrpc": "2.0", "method": method, "params": params});
         if (resp.error) {
             throw resp.error;
         }
         return resp.result;
     }
 
-    async connect(ip, password) {
+    async connect(ip: string, password: string) {
         if (this.connected) {
             await this.disconnect();
         }
@@ -24,15 +27,15 @@ class PrinterConnection extends EventTarget {
         console.log(`PrinterConnection: WebSocket path ${wsPath}`);
         this.wsp = new WebSocketAsPromised(wsPath, {
             packMessage: data => JSON.stringify(data),
-            unpackMessage: data => JSON.parse(data),
+            unpackMessage: data => JSON.parse(data as string),
             attachRequestId: (data, requestId) => Object.assign({id: requestId}, data),
             extractRequestId: data => data && data.id,
         });
 
         console.log("PrinterConnection: connecting to WebSocket");
         this._event('connectingProgress', { 'progress': 'Connecting to WebSocket' });
-        this.wsp.onError.addListener(event => { this.disconnect() });
-        this.wsp.onClose.addListener(event => { this.disconnect() });
+        this.wsp.onError.addListener(() => { this.disconnect() });
+        this.wsp.onClose.addListener(() => { this.disconnect() });
         try {
             await this.wsp.open();
         } catch (e) {
@@ -50,7 +53,7 @@ class PrinterConnection extends EventTarget {
             console.log(`PrinterConnection: authentication failed: ${e}`);
             this._event('connectionFailed', { 'error': e });
             await this.wsp.close();
-            this.wsp = null;
+            this.wsp = undefined;
             return;
         }
         this.connected = true;
@@ -66,7 +69,7 @@ class PrinterConnection extends EventTarget {
         if (this.wsp) {
             await this.wsp.close();
             this.wsp.removeAllListeners();
-            this.wsp = null;
+            this.wsp = undefined;
         }
         this.connected = false;
         this.dispatchEvent(new Event('disconnected'));

@@ -8,7 +8,7 @@ import printerConnection from './printer';
 function body() {
   const [isConnected, setIsConnected] = useState(printerConnection.connected);
   useEffect(() => {
-    function onConnectedChanged(ev: any) {
+    function onConnectedChanged() {
     	setIsConnected(printerConnection.connected);
     }
     printerConnection.addEventListener('connected', onConnectedChanged);

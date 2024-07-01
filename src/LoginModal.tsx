@@ -1,4 +1,4 @@
-import { AppShell, NavLink, Burger, Button, TextInput, Group, Modal, Stack, PasswordInput } from '@mantine/core';
+import { Button, TextInput, Modal, Stack, PasswordInput } from '@mantine/core';
 import { useState, useEffect } from 'react';
 
 import printerConnection from './printer';
@@ -6,7 +6,7 @@ import printerConnection from './printer';
 function LoginModal() {
   const [isConnected, setIsConnected] = useState(printerConnection.connected);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [connectionProgress, setConnectionProgress] = useState(null);
+  //const [connectionProgress, setConnectionProgress] = useState(null);
 
   const [host, setHost] = useState('');
   const [password, setPassword] = useState('');
@@ -14,15 +14,15 @@ function LoginModal() {
   const host_connect = host == '' ? location.host : host;
 
   useEffect(() => {
-    function onConnectedChanged(ev: any) {
+    function onConnectedChanged() {
     	setIsConnected(printerConnection.connected);
     	setIsConnecting(false);
-    	setConnectionProgress(null);
+    	//setConnectionProgress(null);
     }
-    function onConnectingProgress(ev: any) {
+    function onConnectingProgress() {
         setIsConnected(false);
         setIsConnecting(true);
-        setConnectionProgress(ev.progress);
+        //setConnectionProgress(ev.progress);
     }
     printerConnection.addEventListener('connected', onConnectedChanged);
     printerConnection.addEventListener('disconnected', onConnectedChanged);

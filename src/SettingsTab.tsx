@@ -20,7 +20,7 @@ function body() {
   }
 
   useEffect(() => {
-    function onConnectedChanged(ev: any) {
+    function onConnectedChanged() {
     	setIsConnected(printerConnection.connected);
     	if (printerConnection.connected) {
     	  requestSettings();

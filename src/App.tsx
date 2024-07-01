@@ -1,6 +1,6 @@
-import { AppShell, NavLink, Burger, Button, TextInput, Group, Modal, Stack, PasswordInput } from '@mantine/core';
+import { AppShell, NavLink, Burger, Group } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconScreenShare, IconLogout } from '@tabler/icons-react';
+import { IconLogout } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 
 import LoginModal from './LoginModal';
@@ -17,7 +17,7 @@ function App() {
   const [connectionProgress, setConnectionProgress] = useState(null);
   
   useEffect(() => {
-    function onConnectedChanged(ev: any) {
+    function onConnectedChanged() {
     	setIsConnected(printerConnection.connected);
     	setIsConnecting(false);
     	setConnectionProgress(null);
@@ -38,7 +38,7 @@ function App() {
     	
   }, [/* url */]);
   
-  var tabs: [Tab] = [
+  var tabs = [
     SettingsTab,
     VncTab
   ];
